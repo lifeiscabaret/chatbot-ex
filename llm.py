@@ -20,6 +20,7 @@ def get_llm(model='gpt-4o'):
 ## database 함수 정의 ================================================
 def get_database():
     PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY') 
 
     ## 임베딩 모델 지정text-embedding-3-large')
     embedding = OpenAIEmbeddings(model="text-embedding-3-large")
