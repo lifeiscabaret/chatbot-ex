@@ -1,6 +1,7 @@
 import streamlit as st
 from llm import get_ai_message
-
+from dotenv import load_dotenv
+load_dotenv()
 
 st.set_page_config(page_title='전세사기피해 상담 챗봇', page_icon='🤖')
 st.title('🤖 전세사기피해 상담 챗봇')
