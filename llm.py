@@ -21,8 +21,7 @@ def get_llm(model='gpt-4o'):
 def get_database():
     PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
 
-    ## 임베딩 모델 지정
-    embedding = OpenAIEmbeddings(model='text-embedding-3-large')
+    ## 임베딩 모델 지정text-embedding-3-large')
     Pinecone(api_key=PINECONE_API_KEY)
     index_name = 'law' #변수에 저장
 
