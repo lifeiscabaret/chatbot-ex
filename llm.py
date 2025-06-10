@@ -22,17 +22,15 @@ def get_database():
     PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
 
     ## 임베딩 모델 지정text-embedding-3-large')
+    embedding = OpenAIEmbeddings(model="text-embedding-3-large")
     Pinecone(api_key=PINECONE_API_KEY)
     index_name = 'law' #변수에 저장
 
     ## 저장된 인덱스 가져오기
-    database = PineconeVectorStore.from_existing_index(
+    return PineconeVectorStore.from_existing_index(
         index_name=index_name,
-        embedding=embedding,
+        embedding=embedding
     )
-
-    return database
-
 
 ## retrievalQA 함수 정의 ====================================================================
 def get_retrievalQA():
