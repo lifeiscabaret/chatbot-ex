@@ -14,9 +14,10 @@ load_dotenv()
 
 ## llm 함수 정의 ===================================================================
 def get_llm(model='gpt-4o'):
-    llm = ChatOpenAI(model=model) 
-    return llm
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    return ChatOpenAI(model=model, openai_api_key=OPENAI_API_KEY)
 
+print("✅ OPENAI_API_KEY 불러오기:", os.getenv("OPENAI_API_KEY"))
 ## database 함수 정의 ================================================
 def get_database():
     PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
