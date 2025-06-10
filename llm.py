@@ -23,7 +23,11 @@ def get_database():
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY') 
 
     ## 임베딩 모델 지정text-embedding-3-large')
-    embedding = OpenAIEmbeddings(model="text-embedding-3-large")
+    embedding = OpenAIEmbeddings(
+        model="text-embedding-3-large",
+        openai_api_type=OPENAI_API_KEY
+    )
+
     Pinecone(api_key=PINECONE_API_KEY)
     index_name = 'law' #변수에 저장
 
