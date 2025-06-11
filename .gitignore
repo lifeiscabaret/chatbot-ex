@@ -1,8 +1,11 @@
 ## 파일
-chat-01.py
-test.py
 .env
+chat-01.py
+chat-02.py
+test.py
+*-before.py
+*-error.py
+llm-error02.py
 
 ## 폴더 
 __pycache__/
-chat-02.py
