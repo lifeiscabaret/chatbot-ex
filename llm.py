@@ -10,7 +10,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone
-
+from langchain.prompts import PromptTemplate
 
 ## 환경변수 읽어오기 =====================================================
 load_dotenv()
@@ -83,13 +83,40 @@ def get_retrievalQA():
     def format_docs(docs):
         return '\n\n'.join(doc.page_content for doc in docs)
     
-    input_str = RunnableLambda(lambda x: x['input'])
 
-    qa_chain = (
+
+
+
+    input_str = RunnableLambda(lambda x: x['input'])
+    chat_history_str = RunnableLambda(lambda x: x["chat_history"] if isinstance(x, dict) else [])
+
+    contextualize_q_prompt = ChatPromptTemplate.from_messages([
+        ("system", "Given a chat history and the latest user question "
+                    "which might reference context in the chat history, "
+                    "formulate a standalone question which can be understood "
+                    "without the chat history. Do NOT answer the question, "
+                    "just reformulate it if needed and otherwise return it as is."),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ])
+
+    from langchain.chains import create_history_aware_retriever
+
+
+    # history-aware retriever 생성
+
+    history_aware_retriever = create_history_aware_retriever(
+        retriever=database.as_retriever(),
+        llm=llm,
+        prompt=contextualize_q_prompt
+    )
+
+    # 최종 RAG 체인 구성
+    rag_chain = (
         {
-            'context': input_str | database.as_retriever() | format_docs,
-            'input': input_str,
-            'chat_history': RunnableLambda(lambda x: x['chat_history'])
+            "context": history_aware_retriever | format_docs,
+            "input": lambda x: x["input"],
+            "chat_history": lambda x: x["chat_history"] if isinstance(x, dict) else [],
         }
         | qa_prompt
         | llm
@@ -97,13 +124,32 @@ def get_retrievalQA():
     )
 
     conversational_rag_chain = RunnableWithMessageHistory(
-        qa_chain,
+        rag_chain,
         get_session_history,
-        input_messages_key="input",
+        input_messages_key=None,
         history_messages_key="chat_history",
     )
 
     return conversational_rag_chain
+    # # qa_chain = (
+    # #     {
+    # #         'context': input_str | database.as_retriever() | format_docs,
+    # #         'input': input_str,
+    # #         'chat_history': RunnableLambda(lambda x: x['chat_history'])
+    # #     }
+    # #     | qa_prompt
+    # #     | llm
+    # #     | StrOutputParser()
+    # # )
+
+    # # conversational_rag_chain = RunnableWithMessageHistory(
+    # #     qa_chain,
+    # #     get_session_history,
+    # #     input_messages_key="input",
+    # #     history_messages_key="chat_history",
+    # # )
+
+    # # return conversational_rag_chain
 
 
 ## [AI Message 함수 정의] ================================================
@@ -111,11 +157,13 @@ def get_ai_message(user_message, session_id='default'):
     qa_chain = get_retrievalQA()
 
     ai_message = qa_chain.invoke(
-        {'input': user_message},
+        {'input': user_message,
+         'chat_history': get_session_history(session_id).messages
+        },
         config={'configurable': {'session_id': session_id}},        
     )
 
-    # print(f'대화 이력 >> {get_session_history(session_id)} \n😊\n')
+    # print(f'대화 이력 >> {get_session_history(session_id)} \n😎\n')
     # print('=' * 50 + '\n')
 
     return ai_message

@@ -6,6 +6,7 @@ test.py
 *-before.py
 *-error.py
 llm-error02.py
+llm-error03.py
 
 ## 폴더 
 __pycache__/
